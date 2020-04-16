@@ -1,0 +1,45 @@
+image: node
+
+stages:
+  - build
+  - test
+  - deploy
+
+build website:
+  stage: build
+  script:
+    - npm install
+    - npm install -g @angular/cli
+    - ng build --prod
+  artifacts:
+    paths:
+      - ./public
+
+test artifact:
+  image: alpine
+  stage: test
+  script:
+    - grep -q "Gatsby" ./public/index.html
+
+test website:
+  stage: test
+  script:
+    - npm install
+    - npm install -g @angular/cli
+    - ng serve &
+    - sleep 3
+    - curl "http://localhost:4000" | tac | tac | grep -q "Angular"
+
+deploy to surge:
+  stage: deploy
+  script:
+    - npm install --global surge
+    - surge --project ./public --domain instazone.surge.sh
+
+    # For now I need to show results, so just leave it like this, and deploy this on surge.sh and see if it works.
+  #  FROM nginx:alpine
+  # LABEL author="Simona Cotin"
+  # COPY ./dist /usr/share/nginx/html
+  # EXPOSE 80 443
+  # ENTRYPOINT ["nginx","-g","daemon off;"]
+
